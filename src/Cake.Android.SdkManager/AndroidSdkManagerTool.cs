@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Cake.Core;
 using Cake.Core.IO;
-using Cake.Core.Tooling;
 
 namespace Cake.AndroidSdkManager
 {
@@ -12,15 +11,13 @@ namespace Cake.AndroidSdkManager
 	{
 		const string ANDROID_SDKMANAGER_MINIMUM_VERSION_REQUIRED = "26.1.1";
 
-		public AndroidSdkManagerTool(ICakeContext cakeContext, IFileSystem fileSystem, ICakeEnvironment cakeEnvironment, IProcessRunner processRunner, IToolLocator toolLocator)
-			: base(fileSystem, cakeEnvironment, processRunner, toolLocator)
-		{
-			context = cakeContext;
-			environment = cakeEnvironment;
-		}
+        public AndroidSdkManagerTool(ICakeContext cakeContext)
+            : base(cakeContext)
+        {
+            _cakeContext = cakeContext;
+        }
 
-		ICakeContext context;
-		ICakeEnvironment environment;
+        private ICakeContext _cakeContext;
 
 		protected override string GetToolName()
 		{
@@ -39,11 +36,11 @@ namespace Cake.AndroidSdkManager
 		{
 			var results = new List<FilePath>();
 
-			var ext = environment.Platform.Family == PlatformFamily.Windows ? ".bat" : "";
-            var androidHome = settings.SdkRoot.MakeAbsolute(environment).FullPath;
+            var ext = _cakeContext.Environment.Platform.Family == PlatformFamily.Windows ? ".bat" : "";
+            var androidHome = settings.SdkRoot.MakeAbsolute(_cakeContext.Environment).FullPath;
 
-            if (!System.IO.Directory.Exists (androidHome))
-			    androidHome = environment.GetEnvironmentVariable("ANDROID_HOME");
+            if (!System.IO.Directory.Exists(androidHome))
+                androidHome = _cakeContext.Environment.GetEnvironmentVariable("ANDROID_HOME");
 
 			if (!string.IsNullOrEmpty(androidHome) && System.IO.Directory.Exists(androidHome))
 			{
@@ -58,14 +55,14 @@ namespace Cake.AndroidSdkManager
 		readonly Regex rxListVers = new Regex("\\s+Version:\\s+(?<ver>.*?)$", RegexOptions.Compiled | RegexOptions.Singleline);
 		readonly Regex rxListLoc = new Regex("\\s+Installed Location:\\s+(?<loc>.*?)$", RegexOptions.Compiled | RegexOptions.Singleline);
 
-		public void CheckSdkManagerVersion (AndroidSdkManagerToolSettings settings)
+		public void CheckSdkManagerVersion (ref AndroidSdkManagerToolSettings settings)
 		{
 			if (settings == null)
 				settings = new AndroidSdkManagerToolSettings();
 
 			if (settings.SkipVersionCheck)
 				return;
-			
+
 			var builder = new ProcessArgumentBuilder();
 			builder.Append("--version");
 
@@ -81,8 +78,6 @@ namespace Cake.AndroidSdkManager
 		{
 			var result = new AndroidSdkManagerList();
 
-			if (settings == null)
-				settings = new AndroidSdkManagerToolSettings();
 
 			CheckSdkManagerVersion(settings);
 
@@ -118,7 +113,7 @@ namespace Cake.AndroidSdkManager
 			{
 				if (line.StartsWith("------"))
 					continue;
-				
+
 				if (line.ToLowerInvariant().Contains("installed packages:"))
 				{
 					section = 1;
@@ -142,7 +137,7 @@ namespace Cake.AndroidSdkManager
 						// If we have spaces preceding the line, it's not a new item yet
 						if (line.StartsWith(" "))
 							continue;
-						
+
 						path = line.Trim();
 						continue;
 					}
@@ -194,11 +189,12 @@ namespace Cake.AndroidSdkManager
 		}
 
 
-		public bool InstallOrUninstall(bool install, IEnumerable<string> packages, AndroidSdkManagerToolSettings settings)
-		{
-			if (settings == null)
-				settings = new AndroidSdkManagerToolSettings();
-
+        public bool InstallOrUninstall(
+            bool install,
+            IEnumerable<string> packages,
+            AndroidSdkManagerToolSettings settings
+		)
+        {
 			CheckSdkManagerVersion(settings);
 
 			//adb devices -l
@@ -206,7 +202,7 @@ namespace Cake.AndroidSdkManager
 
 			if (!install)
 				builder.Append("--uninstall");
-			
+
 			foreach (var pkg in packages)
 				builder.AppendQuoted(pkg);
 
@@ -218,19 +214,18 @@ namespace Cake.AndroidSdkManager
 
 			pex.Complete.Wait();
 
-			foreach (var line in pex.StandardOutput)
-			{
-				if (line.StartsWith("Info:", StringComparison.InvariantCultureIgnoreCase))
-					this.context.Log.Write(Core.Diagnostics.Verbosity.Diagnostic, Core.Diagnostics.LogLevel.Information, line);
-			}
+            foreach (var line in pex.StandardOutput)
+            {
+                if (line.StartsWith("Info:", StringComparison.InvariantCultureIgnoreCase))
+                    this._cakeContext.Log.Write(Core.Diagnostics.Verbosity.Diagnostic,
+                        Core.Diagnostics.LogLevel.Information, line);
+            }
 
 			return true;
 		}
 
-		public bool AcceptLicenses(AndroidSdkManagerToolSettings settings)
-		{
-			if (settings == null)
-				settings = new AndroidSdkManagerToolSettings();
+        public bool AcceptLicenses(AndroidSdkManagerToolSettings settings)
+        {
 
 			CheckSdkManagerVersion(settings);
 
@@ -253,19 +248,18 @@ namespace Cake.AndroidSdkManager
 
 			System.Threading.Thread.Sleep(500);
 
-			foreach (var line in pex.StandardOutput)
-			{
-				if (line.StartsWith("Info:", StringComparison.InvariantCultureIgnoreCase))
-					this.context.Log.Write(Core.Diagnostics.Verbosity.Diagnostic, Core.Diagnostics.LogLevel.Information, line);
-			}
+            foreach (var line in pex.StandardOutput)
+            {
+                if (line.StartsWith("Info:", StringComparison.InvariantCultureIgnoreCase))
+                    this._cakeContext.Log.Write(Core.Diagnostics.Verbosity.Diagnostic,
+                        Core.Diagnostics.LogLevel.Information, line);
+            }
 
 			return true;
 		}
 
-		public bool UpdateAll(AndroidSdkManagerToolSettings settings)
-		{
-			if (settings == null)
-				settings = new AndroidSdkManagerToolSettings();
+        public bool UpdateAll(AndroidSdkManagerToolSettings settings)
+        {
 
 			//adb devices -l
 			var builder = new ProcessArgumentBuilder();
@@ -280,22 +274,20 @@ namespace Cake.AndroidSdkManager
 
 			pex.Complete.Wait();
 
-			foreach (var line in pex.StandardOutput)
-			{
-				if (line.StartsWith("Info:", StringComparison.InvariantCultureIgnoreCase))
-					this.context.Log.Write(Core.Diagnostics.Verbosity.Diagnostic, Core.Diagnostics.LogLevel.Information, line);
-			}
+            foreach (var line in pex.StandardOutput)
+            {
+                if (line.StartsWith("Info:", StringComparison.InvariantCultureIgnoreCase))
+                    this._cakeContext.Log.Write(Core.Diagnostics.Verbosity.Diagnostic,
+                        Core.Diagnostics.LogLevel.Information, line);
+            }
 
 			return true;
 		}
 
 		public IEnumerable<string> Help(AndroidSdkManagerToolSettings settings)
 		{
-			if (settings == null)
-				settings = new AndroidSdkManagerToolSettings();
-
 			//adb devices -l
-			var builder = new ProcessArgumentBuilder();
+            var builder = new ProcessArgumentBuilder();
 
 			var pex = RunProcessEx(settings, builder);
 
@@ -312,8 +304,8 @@ namespace Cake.AndroidSdkManager
 			if (settings.Channel != AndroidSdkChannel.Stable)
 				builder.Append("--channel=" + (int)settings.Channel);
 
-			if (settings.SdkRoot != null)
-				builder.Append("--sdk_root=\"{0}\"", settings.SdkRoot.MakeAbsolute(environment));
+            if (settings.SdkRoot != null)
+                builder.Append("--sdk_root=\"{0}\"", settings.SdkRoot.MakeAbsolute(_cakeContext.Environment));
 
 			if (settings.IncludeObsolete)
 				builder.Append("--include_obsolete");

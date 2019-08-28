@@ -21,8 +21,8 @@ namespace Cake.AndroidSdkManager
 		[CakeMethodAlias]
 		public static void AndroidSdkManagerUpdateAll(this ICakeContext context, AndroidSdkManagerToolSettings settings = null)
 		{
-			var runner = new AndroidSdkManagerTool(context, context.FileSystem, context.Environment, context.ProcessRunner, context.Tools);
-			runner.UpdateAll(settings ?? new AndroidSdkManagerToolSettings());
+			var runner = new AndroidSdkManagerTool(context);
+			runner.UpdateAll(settings);
 		}
 
 		/// <summary>
@@ -34,8 +34,8 @@ namespace Cake.AndroidSdkManager
 		[CakeMethodAlias]
 		public static void AndroidSdkManagerInstall(this ICakeContext context, IEnumerable<string> packages, AndroidSdkManagerToolSettings settings = null)
 		{
-			var runner = new AndroidSdkManagerTool(context, context.FileSystem, context.Environment, context.ProcessRunner, context.Tools);
-			runner.InstallOrUninstall(true, packages, settings ?? new AndroidSdkManagerToolSettings());
+			var runner = new AndroidSdkManagerTool(context);
+			runner.InstallOrUninstall(true, packages, settings);
 		}
 
 		/// <summary>
@@ -47,8 +47,8 @@ namespace Cake.AndroidSdkManager
 		[CakeMethodAlias]
 		public static void AndroidSdkManagerUninstall(this ICakeContext context, IEnumerable<string> packages, AndroidSdkManagerToolSettings settings = null)
 		{
-			var runner = new AndroidSdkManagerTool(context, context.FileSystem, context.Environment, context.ProcessRunner, context.Tools);
-			runner.InstallOrUninstall(false, packages, settings ?? new AndroidSdkManagerToolSettings());
+			var runner = new AndroidSdkManagerTool(context);
+			runner.InstallOrUninstall(false, packages, settings);
 		}
 
 		/// <summary>
@@ -60,8 +60,8 @@ namespace Cake.AndroidSdkManager
 		[CakeMethodAlias]
 		public static AndroidSdkManagerList AndroidSdkManagerList(this ICakeContext context, AndroidSdkManagerToolSettings settings = null)
 		{
-			var runner = new AndroidSdkManagerTool(context, context.FileSystem, context.Environment, context.ProcessRunner, context.Tools);
-			return runner.List(settings ?? new AndroidSdkManagerToolSettings());
+			var runner = new AndroidSdkManagerTool(context);
+			return runner.List(settings);
 		}
 
 		/// <summary>
@@ -84,8 +84,8 @@ namespace Cake.AndroidSdkManager
 		[CakeMethodAlias]
 		public static void AcceptLicenses(this ICakeContext context, AndroidSdkManagerToolSettings settings = null)
 		{
-			var runner = new AndroidSdkManagerTool(context, context.FileSystem, context.Environment, context.ProcessRunner, context.Tools);
-			runner.AcceptLicenses(settings ?? new AndroidSdkManagerToolSettings());
+			var runner = new AndroidSdkManagerTool(context);
+			runner.AcceptLicenses(settings);
 		}
     }
 }
