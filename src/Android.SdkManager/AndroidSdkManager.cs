@@ -48,56 +48,79 @@ namespace Android.SdkManager
         /// <param name="specificVersion">Specific version, or latest if none is specified.</param>
         public async Task DownloadSdkAsync(Version specificVersion = null)
         {
-            if (specificVersion == null)
-            {
-                try
-                {
-                    specificVersion = await GetLatestVersion()
-                        .ConfigureAwait(false);
-                }
-                catch
-                {
-                    //TODO: Change this fallback
-                    specificVersion = FallbackVersion;
-                }
-            }
+            specificVersion = await GetSpecificOrLatestVersion(specificVersion)
+                .ConfigureAwait(false);
 
             var sdkToolInfo = await GetSdkToolInfo(specificVersion)
                 .ConfigureAwait(false);
 
-            var sdkZipFile = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "android-sdk.zip"));
+            var tempFileForSdk = GetTempFileForSdk(specificVersion, sdkToolInfo);
 
-            void CleanTempFile()
+            var fileExists = tempFileForSdk.EnsureOnlyValidFileExists(sdkToolInfo.Checksum);
+
+            if (!fileExists)
             {
-                if (File.Exists(sdkZipFile))
-                    File.Delete(sdkZipFile);
+                await DownloadSdkInternalAsync(sdkToolInfo, tempFileForSdk)
+                    .ConfigureAwait(false);
             }
 
-            //TODO: Maybe impl a checksum to reuse the file
-            CleanTempFile();
+            ExtractSdk(tempFileForSdk);
+        }
+
+        private static FileInfo GetTempFileForSdk(Version specificVersion, AndroidSdkArchive sdkToolInfo)
+        {
+            return Path.GetFullPath(
+                Path.Combine(
+                    Path.GetTempPath(),
+                    $"android-sdk-{sdkToolInfo.Platform.ToString().ToLowerInvariant()}-{specificVersion}.zip"
+                )
+            ).ToFileInfo();
+        }
+
+        private async Task<Version> GetSpecificOrLatestVersion(Version specificVersion)
+        {
+            if (specificVersion != null)
+                return specificVersion;
 
             try
             {
-                var streamTask = HttpClient.GetStreamAsync(sdkToolInfo.DownloadUri)
+                specificVersion = await GetLatestVersion()
                     .ConfigureAwait(false);
-
-                using (var httpStream = await streamTask)
-                using (var fileStream = File.Open(sdkZipFile, FileMode.OpenOrCreate))
-                {
-                    await httpStream.CopyToAsync(fileStream)
-                        .ConfigureAwait(false);
-                }
-
-                var sdkRoot = Path.GetFullPath(Settings.SdkRoot);
-                if (!Directory.Exists(sdkRoot))
-                    Directory.CreateDirectory(sdkRoot);
-
-                ZipFile.ExtractToDirectory(sdkZipFile, sdkRoot);
             }
-            finally
+            catch
             {
-                CleanTempFile();
+                //TODO: Change this fallback
+                specificVersion = FallbackVersion;
             }
+
+            return specificVersion;
+        }
+
+
+        private async Task DownloadSdkInternalAsync(AndroidSdkArchive sdkToolInfo, FileInfo outputFile)
+        {
+            var streamTask = HttpClient.GetStreamAsync(sdkToolInfo.DownloadUri)
+                .ConfigureAwait(false);
+
+            using (var fileStream = outputFile.Create())
+            using (var httpStream = await streamTask)
+            {
+                await httpStream.CopyToAsync(fileStream)
+                    .ConfigureAwait(false);
+            }
+
+            if (!outputFile.ValidateFileSha1(sdkToolInfo.Checksum))
+                throw new ApplicationException("The downloaded file is invalid. Failed to pass checksum check.");
+        }
+
+        public void ExtractSdk(FileInfo sdkZipFile)
+        {
+            var sdkRoot = Settings.SdkRoot
+                .ToDirectoryInfo();
+
+            using var zipFile = ZipFile.OpenRead(sdkZipFile.FullName);
+
+            zipFile.ExtractOverDirectory(sdkRoot);
         }
 
         public async Task<AndroidSdkArchive> GetSdkToolInfo(Version version)

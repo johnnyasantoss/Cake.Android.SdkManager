@@ -5,6 +5,24 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cake.Android.SdkManager", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cake.Android.SdkManager.Tests", "Cake.Android.SdkManager.Tests\Cake.Android.SdkManager.Tests.csproj", "{B50B21A5-4147-4333-B2C9-25B26081DA69}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Android.SdkManager", "Android.SdkManager\Android.SdkManager.csproj", "{D276D833-D8EF-48F0-93FF-A336008591C2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFiles", "SolutionFiles", "{33C0C049-8D67-48D2-893C-2178DD0F8C09}"
+ProjectSection(SolutionItems) = preProject
+	..\.editorconfig = ..\.editorconfig
+	..\GitReleaseManager.yaml = ..\GitReleaseManager.yaml
+	..\.gitignore = ..\.gitignore
+	..\.appveyor.yml = ..\.appveyor.yml
+	..\LICENSE = ..\LICENSE
+	..\.env = ..\.env
+	..\build.ps1 = ..\build.ps1
+	..\recipe.cake = ..\recipe.cake
+	..\README.md = ..\README.md
+	..\build.sh = ..\build.sh
+EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Android.SdkManager.Tests", "..\tests\Android.SdkManager.Tests\Android.SdkManager.Tests.csproj", "{B2253EA3-35E7-4D73-9ACB-87DE373B3DBF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,5 +37,13 @@ Global
 		{B50B21A5-4147-4333-B2C9-25B26081DA69}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B50B21A5-4147-4333-B2C9-25B26081DA69}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B50B21A5-4147-4333-B2C9-25B26081DA69}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D276D833-D8EF-48F0-93FF-A336008591C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D276D833-D8EF-48F0-93FF-A336008591C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D276D833-D8EF-48F0-93FF-A336008591C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D276D833-D8EF-48F0-93FF-A336008591C2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2253EA3-35E7-4D73-9ACB-87DE373B3DBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2253EA3-35E7-4D73-9ACB-87DE373B3DBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2253EA3-35E7-4D73-9ACB-87DE373B3DBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2253EA3-35E7-4D73-9ACB-87DE373B3DBF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -9,6 +9,11 @@ namespace Android.SdkManager
     /// </summary>
     public class AndroidSdkManagerSettings
     {
+        private string _sdkRoot = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+            ".android"
+        );
+
         /// <summary>
         /// Gets or sets the Android SDK root path.
         /// </summary>
@@ -16,11 +21,11 @@ namespace Android.SdkManager
         /// Default: <code>$HOME/.android</code>
         /// </remarks>
         /// <value>The sdk root.</value>
-        public string SdkRoot { get; set; }
-            = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                ".android"
-            );
+        public string SdkRoot
+        {
+            get => _sdkRoot;
+            set => _sdkRoot = Path.GetFullPath(value);
+        }
 
         /// <summary>
         /// Gets or sets the release channel.
