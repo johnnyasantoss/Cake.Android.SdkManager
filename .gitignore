@@ -251,5 +251,10 @@ paket-files/
 .idea/
 *.sln.iml
 
+# Project specific
 android-sdk/
 tools/
+.env
+
+# Rider
+.idea/
